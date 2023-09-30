@@ -189,11 +189,25 @@ message SetMarketUris {
 
 // TELLER V2 EVENTS
 
+
 message SubmittedBid {
   string bid_id = 1;
   string borrower = 2;
   string receiver = 3;
   string metadata_uri = 4;
+  string lending_token = 5;
+  string marketplace_id = 6;
+  string principal = 7;
+  string duration = 8;
+  string apr = 9;
+  repeated Collateral collateral = 10;
+}
+
+message Collateral {
+  string collateral_type = 1;
+  string collateral_amount = 2;
+  string collateral_tokenId = 3;
+  string collateral_address = 4;
 }
 
 message SubmittedBids {

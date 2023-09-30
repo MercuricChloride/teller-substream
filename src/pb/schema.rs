@@ -282,6 +282,30 @@ pub struct SubmittedBid {
     pub receiver: ::prost::alloc::string::String,
     #[prost(string, tag="4")]
     pub metadata_uri: ::prost::alloc::string::String,
+    #[prost(string, tag="5")]
+    pub lending_token: ::prost::alloc::string::String,
+    #[prost(string, tag="6")]
+    pub marketplace_id: ::prost::alloc::string::String,
+    #[prost(string, tag="7")]
+    pub principal: ::prost::alloc::string::String,
+    #[prost(string, tag="8")]
+    pub duration: ::prost::alloc::string::String,
+    #[prost(string, tag="9")]
+    pub apr: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag="10")]
+    pub collateral: ::prost::alloc::vec::Vec<Collateral>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Collateral {
+    #[prost(string, tag="1")]
+    pub collateral_type: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub collateral_amount: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub collateral_token_id: ::prost::alloc::string::String,
+    #[prost(string, tag="4")]
+    pub collateral_address: ::prost::alloc::string::String,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]

@@ -338,5 +338,130 @@
       ],
       "name": "Unpaused",
       "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_lendingToken",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_marketplaceId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_principal",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint32",
+          "name": "_duration",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint16",
+          "name": "_APR",
+          "type": "uint16"
+        },
+        {
+          "internalType": "string",
+          "name": "_metadataURI",
+          "type": "string"
+        },
+        {
+          "internalType": "address",
+          "name": "_receiver",
+          "type": "address"
+        }
+      ],
+      "name": "submitBid",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "bidId_",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_lendingToken",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_marketplaceId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_principal",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint32",
+          "name": "_duration",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint16",
+          "name": "_APR",
+          "type": "uint16"
+        },
+        {
+          "internalType": "string",
+          "name": "_metadataURI",
+          "type": "string"
+        },
+        {
+          "internalType": "address",
+          "name": "_receiver",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "enum CollateralType",
+              "name": "_collateralType",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_tokenId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "_collateralAddress",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct Collateral[]",
+          "name": "_collateralInfo",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "submitBid",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "bidId_",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
     }
 ]

@@ -10,8 +10,11 @@ pub mod macros;
 mod pb;
 
 use pb::schema::*;
+use substreams::log::println;
 use substreams::pb::substreams::Clock;
 use substreams_entity_change::{pb::entity::EntityChanges, tables::Tables};
+use substreams_ethereum::pb::eth::v2::TransactionTrace;
+use substreams_ethereum::Function;
 use substreams_ethereum::{pb::eth, Event};
 
 use helpers::*;
@@ -36,26 +39,123 @@ use teller_v2::events::{
     SubmittedBid as SubmittedBidEvent,
 };
 
+use teller_v2::functions::{SubmitBid1, SubmitBid2};
+
 use constants::{MARKET_REGISTRY, START_BLOCK, TELLER_V2};
+
+#[derive(Debug)]
+enum SubmitBid {
+    V1(SubmitBid1),
+    V2(SubmitBid2),
+}
+
+impl SubmitBid {
+    pub fn lending_token(&self) -> String {
+        match self {
+            SubmitBid::V1(function) => format_hex(&function.lending_token),
+            SubmitBid::V2(function) => format_hex(&function.lending_token),
+        }
+    }
+
+    pub fn marketplace_id(&self) -> String {
+        match self {
+            SubmitBid::V1(function) => function.marketplace_id.to_string(),
+            SubmitBid::V2(function) => function.marketplace_id.to_string(),
+        }
+    }
+
+    pub fn principal(&self) -> String {
+        match self {
+            SubmitBid::V1(function) => function.principal.to_string(),
+            SubmitBid::V2(function) => function.principal.to_string(),
+        }
+    }
+
+    pub fn duration(&self) -> String {
+        match self {
+            SubmitBid::V1(function) => function.duration.to_string(),
+            SubmitBid::V2(function) => function.duration.to_string(),
+        }
+    }
+
+    pub fn apr(&self) -> String {
+        match self {
+            SubmitBid::V1(function) => function.apr.to_string(),
+            SubmitBid::V2(function) => function.apr.to_string(),
+        }
+    }
+
+    pub fn collateral_info(&self) -> Vec<Collateral> {
+        match self {
+            SubmitBid::V1(_) => Vec::new(),
+            SubmitBid::V2(function) => function
+                .collateral_info
+                .iter()
+                .map(
+                    |(collateral_type, collateral_amount, token_id, token_address)| Collateral {
+                        collateral_type: collateral_type.to_string(),
+                        collateral_amount: collateral_amount.to_string(),
+                        collateral_token_id: token_id.to_string(),
+                        collateral_address: format_hex(token_address),
+                    },
+                )
+                .collect(),
+        }
+    }
+}
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // TELLER V2 EVENTS
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// extract the submitted bid event
-map_event_to_proto!(
-    map_submitted_bid, // function name
-    SubmittedBidEvent, // event type
-    SubmittedBid,      // singular proto type
-    SubmittedBids,     // plural proto type
-    submitted_bids,    // plural proto ident (also the name of the field in the plural proto type)
-    |bid| SubmittedBid {
-        bid_id: bid.bid_id.to_string(),
-        borrower: format_hex(&bid.borrower),
-        receiver: format_hex(&bid.receiver),
-        metadata_uri: format_hex(&bid.metadata_uri),
-    }  // closure to map the event to the proto type
-);
+#[substreams::handlers::map]
+fn map_submitted_bid(block: eth::v2::Block) -> Result<SubmittedBids, substreams::errors::Error> {
+    let submitted_bids: Vec<SubmittedBid> = block
+        .transaction_traces
+        .into_iter()
+        .flat_map(|traces| {
+            let logs_with_calls = traces.logs_with_calls();
+            logs_with_calls
+                .filter_map(|(log, call)| {
+                    let mut function_call = None;
+                    if let Some(function) = SubmitBid1::match_and_decode(call) {
+                        function_call = Some(SubmitBid::V1(function));
+                    } else if let Some(function) = SubmitBid2::match_and_decode(call) {
+                        function_call = Some(SubmitBid::V2(function));
+                    }
+
+                    let event = SubmittedBidEvent::match_and_decode(log);
+
+                    if format_hex(&log.address) == TELLER_V2.to_lowercase() {
+                        if let (Some(event), Some(function_call)) = (event, function_call) {
+                            println(format!("event: {:?}", event));
+                            println(format!("function_call: {:?}", function_call));
+                            Some((event, function_call))
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<(SubmittedBidEvent, SubmitBid)>>()
+        })
+        .map(|(bid, function_call)| SubmittedBid {
+            bid_id: bid.bid_id.to_string(),
+            borrower: format_hex(&bid.borrower),
+            receiver: format_hex(&bid.receiver),
+            metadata_uri: format_hex(&bid.metadata_uri),
+            lending_token: function_call.lending_token(),
+            marketplace_id: function_call.marketplace_id(),
+            principal: function_call.principal(),
+            duration: function_call.duration(),
+            apr: function_call.apr(),
+            collateral: function_call.collateral_info(),
+        })
+        .collect();
+
+    Ok(SubmittedBids { submitted_bids })
+}
 
 // extract the accepted bid event
 map_event_to_proto!(
@@ -64,7 +164,7 @@ map_event_to_proto!(
     AcceptedBid,      // singular proto type
     AcceptedBids,     // plural proto type
     accepted_bids,    // plural proto ident (also the name of the field in the plural proto type)
-    |bid| AcceptedBid {
+    |(bid, _)| AcceptedBid {
         bid_id: bid.bid_id.to_string(),
         lender: format_hex(&bid.lender),
     }  // closure to map the event to the proto type
@@ -77,7 +177,7 @@ map_event_to_proto!(
     CancelledBid,      // singular proto type
     CancelledBids,     // plural proto type
     cancelled_bids,    // plural proto ident (also the name of the field in the plural proto type)
-    |bid| CancelledBid {
+    |(bid, _)| CancelledBid {
         bid_id: bid.bid_id.to_string(),
     }  // closure to map the event to the proto type
 );
@@ -89,7 +189,7 @@ map_event_to_proto!(
     MarketOwnerCancelledBid,        // singular proto type
     MarketOwnerCancelledBids,       // plural proto type
     market_owner_cancelled_bids, // plural proto ident (also the name of the field in the plural proto type)
-    |bid| MarketOwnerCancelledBid {
+    |(bid, _)| MarketOwnerCancelledBid {
         bid_id: bid.bid_id.to_string(),
     }  // closure to map the event to the proto type
 );
@@ -101,7 +201,7 @@ map_event_to_proto!(
     LoanRepayment,      // singular proto type
     LoanRepayments,     // plural proto type
     loan_repayments,    // plural proto ident (also the name of the field in the plural proto type)
-    |bid| LoanRepayment {
+    |(bid, _)| LoanRepayment {
         bid_id: bid.bid_id.to_string(),
     }  // closure to map the event to the proto type
 );
@@ -113,7 +213,7 @@ map_event_to_proto!(
     LoanRepaid,      // singular proto type
     LoanRepaids,     // plural proto type
     loan_repaid,     // plural proto ident (also the name of the field in the plural proto type)
-    |bid| LoanRepaid {
+    |(bid, _)| LoanRepaid {
         bid_id: bid.bid_id.to_string(),
     }  // closure to map the event to the proto type
 );
@@ -125,7 +225,7 @@ map_event_to_proto!(
     LoanLiquidated,      // singular proto type
     LoanLiquidations,    // plural proto type
     loan_liquidations,   // plural proto ident (also the name of the field in the plural proto type)
-    |bid| LoanLiquidated {
+    |(bid, _)| LoanLiquidated {
         bid_id: bid.bid_id.to_string(),
         liquidator: format_hex(&bid.liquidator),
     }  // closure to map the event to the proto type
@@ -142,7 +242,7 @@ map_event_to_proto!(
     MarketCreated,       // singular proto type
     MarketsCreated,      // plural proto type
     markets_created,     // plural proto ident (also the name of the field in the plural proto type)
-    |market| MarketCreated {
+    |(market, _)| MarketCreated {
         market_id: market.market_id.to_string(),
         owner: format_hex(&market.owner),
     }  // closure to map the event to the proto type
@@ -155,7 +255,7 @@ map_event_to_proto!(
     PaymentCycleDuration,         // singular proto type
     PaymentCycleDurations,        // plural proto type
     payment_cycle_durations, // plural proto ident (also the name of the field in the plural proto type)
-    |payment_cycle| PaymentCycleDuration {
+    |(payment_cycle, _)| PaymentCycleDuration {
         market_id: payment_cycle.market_id.to_string(),
         duration: payment_cycle.duration.into(),
     }  // closure to map the event to the proto type
@@ -168,7 +268,7 @@ map_event_to_proto!(
     PaymentDefaultDuration,              // singular proto type
     PaymentDefaultDurations,             // plural proto type
     payment_default_durations, // plural proto ident (also the name of the field in the plural proto type)
-    |payment_cycle| PaymentDefaultDuration {
+    |(payment_cycle, _)| PaymentDefaultDuration {
         market_id: payment_cycle.market_id.to_string(),
         duration: payment_cycle.duration.into(),
     }  // closure to map the event to the proto type
@@ -181,7 +281,7 @@ map_event_to_proto!(
     BidExpirationTime,       // singular proto type
     BidExpirationTimes,      // plural proto type
     bid_expiration_times, // plural proto ident (also the name of the field in the plural proto type)
-    |bid| BidExpirationTime {
+    |(bid, _)| BidExpirationTime {
         market_id: bid.market_id.to_string(),
         duration: bid.duration.into(),
     }  // closure to map the event to the proto type
@@ -194,7 +294,7 @@ map_event_to_proto!(
     MarketFee,         // singular proto type
     MarketFees,        // plural proto type
     market_fees,       // plural proto ident (also the name of the field in the plural proto type)
-    |bid| MarketFee {
+    |(bid, _)| MarketFee {
         market_id: bid.market_id.to_string(),
         fee_pct: bid.fee_pct.into(),
     }  // closure to map the event to the proto type
@@ -207,7 +307,7 @@ map_event_to_proto!(
     LenderAttestation,       // singular proto type
     LenderAttestations,      // plural proto type
     lender_attestations, // plural proto ident (also the name of the field in the plural proto type)
-    |bid| LenderAttestation {
+    |(bid, _)| LenderAttestation {
         market_id: bid.market_id.to_string(),
         lender: format_hex(&bid.lender),
     }  // closure to map the event to the proto type
@@ -220,7 +320,7 @@ map_event_to_proto!(
     BorrowerAttestation,       // singular proto type
     BorrowerAttestations,      // plural proto type
     borrower_attestations, // plural proto ident (also the name of the field in the plural proto type)
-    |bid| BorrowerAttestation {
+    |(bid, _)| BorrowerAttestation {
         market_id: bid.market_id.to_string(),
         borrower: format_hex(&bid.borrower),
     }  // closure to map the event to the proto type
@@ -233,7 +333,7 @@ map_event_to_proto!(
     LenderRevocation,       // singular proto type
     LenderRevocations,      // plural proto type
     lender_revocations, // plural proto ident (also the name of the field in the plural proto type)
-    |bid| LenderRevocation {
+    |(bid, _)| LenderRevocation {
         market_id: bid.market_id.to_string(),
         lender: format_hex(&bid.lender),
     }  // closure to map the event to the proto type
@@ -246,7 +346,7 @@ map_event_to_proto!(
     BorrowerRevocation,       // singular proto type
     BorrowerRevocations,      // plural proto type
     borrower_revocations, // plural proto ident (also the name of the field in the plural proto type)
-    |bid| BorrowerRevocation {
+    |(bid, _)| BorrowerRevocation {
         market_id: bid.market_id.to_string(),
         borrower: format_hex(&bid.borrower),
     }  // closure to map the event to the proto type
@@ -259,7 +359,7 @@ map_event_to_proto!(
     MarketClosed,      // singular proto type
     MarketsClosed,     // plural proto type
     markets_closed,    // plural proto ident (also the name of the field in the plural proto type)
-    |bid| MarketClosed {
+    |(bid, _)| MarketClosed {
         market_id: bid.market_id.to_string(),
     }  // closure to map the event to the proto type
 );
@@ -271,7 +371,7 @@ map_event_to_proto!(
     LenderExitMarket,       // singular proto type
     LenderExitMarkets,      // plural proto type
     lender_exit_markets, // plural proto ident (also the name of the field in the plural proto type)
-    |bid| LenderExitMarket {
+    |(bid, _)| LenderExitMarket {
         market_id: bid.market_id.to_string(),
         lender: format_hex(&bid.lender),
     }  // closure to map the event to the proto type
@@ -284,7 +384,7 @@ map_event_to_proto!(
     BorrowerExitMarket,       // singular proto type
     BorrowerExitMarkets,      // plural proto type
     borrower_exit_markets, // plural proto ident (also the name of the field in the plural proto type)
-    |bid| BorrowerExitMarket {
+    |(bid, _)| BorrowerExitMarket {
         market_id: bid.market_id.to_string(),
         borrower: format_hex(&bid.borrower),
     }  // closure to map the event to the proto type
@@ -297,7 +397,7 @@ map_event_to_proto!(
     SetMarketOwner,       // singular proto type
     SetMarketOwners,      // plural proto type
     set_market_owners, // plural proto ident (also the name of the field in the plural proto type)
-    |bid| SetMarketOwner {
+    |(bid, _)| SetMarketOwner {
         market_id: bid.market_id.to_string(),
         new_owner: format_hex(&bid.new_owner),
     }  // closure to map the event to the proto type
@@ -310,7 +410,7 @@ map_event_to_proto!(
     SetMarketFeeRecipient,      // singular proto type
     SetMarketFeeRecipients,     // plural proto type
     set_market_fee_recipients, // plural proto ident (also the name of the field in the plural proto type)
-    |bid| SetMarketFeeRecipient {
+    |(bid, _)| SetMarketFeeRecipient {
         market_id: bid.market_id.to_string(),
         new_recipient: format_hex(&bid.new_recipient),
     }  // closure to map the event to the proto type
@@ -323,7 +423,7 @@ map_event_to_proto!(
     SetMarketLenderAttestation,        // singular proto type
     SetMarketLenderAttestations,       // plural proto type
     set_market_lender_attestations, // plural proto ident (also the name of the field in the plural proto type)
-    |bid| SetMarketLenderAttestation {
+    |(bid, _)| SetMarketLenderAttestation {
         market_id: bid.market_id.to_string(),
         attestation_required: bid.required,
     }  // closure to map the event to the proto type
@@ -336,7 +436,7 @@ map_event_to_proto!(
     SetMarketBorrowerAttestation,        // singular proto type
     SetMarketBorrowerAttestations,       // plural proto type
     set_market_borrower_attestations, // plural proto ident (also the name of the field in the plural proto type)
-    |bid| SetMarketBorrowerAttestation {
+    |(bid, _)| SetMarketBorrowerAttestation {
         market_id: bid.market_id.to_string(),
         attestation_required: bid.required,
     }  // closure to map the event to the proto type
@@ -349,7 +449,7 @@ map_event_to_proto!(
     SetPaymentCycle,           // singular proto type
     SetPaymentCycles,          // plural proto type
     set_market_payment_cycles, // plural proto ident (also the name of the field in the plural proto type)
-    |bid| SetPaymentCycle {
+    |(bid, _)| SetPaymentCycle {
         market_id: bid.market_id.to_string(),
         payment_cycle_type: bid.payment_cycle_type.into(),
         value: bid.value.into(),
@@ -363,7 +463,7 @@ map_event_to_proto!(
     SetMarketPaymentType,      // singular proto type
     SetMarketPaymentTypes,     // plural proto type
     set_market_payment_types, // plural proto ident (also the name of the field in the plural proto type)
-    |bid| SetMarketPaymentType {
+    |(bid, _)| SetMarketPaymentType {
         market_id: bid.market_id.to_string(),
         payment_type: bid.payment_type.into(),
     }  // closure to map the event to the proto type
@@ -376,7 +476,7 @@ map_event_to_proto!(
     SetMarketUri,       // singular proto type
     SetMarketUris,      // plural proto type
     set_market_uris,    // plural proto ident (also the name of the field in the plural proto type)
-    |bid| SetMarketUri {
+    |(bid, _)| SetMarketUri {
         market_id: bid.market_id.to_string(),
         uri: bid.uri,
     }  // closure to map the event to the proto type
@@ -417,6 +517,9 @@ pub fn graph_out(
     if clock.number == START_BLOCK {
         bootstrap_protocol(&mut tables);
     }
+
+    // handle the markets created event
+    map_markets_created.handle(&mut tables);
 
     Ok(tables.to_entity_changes())
 }

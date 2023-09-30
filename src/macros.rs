@@ -10,8 +10,9 @@ macro_rules! map_event_to_proto {
                 .logs()
                 .filter_map(|log| {
                     if format_hex(log.address()) == TELLER_V2.to_lowercase() {
+                        let transaction = log.receipt.transaction;
                         if let Some(event) = <$event>::match_and_decode(log) {
-                            Some(event)
+                            Some((event, transaction))
                         } else {
                             None
                         }
