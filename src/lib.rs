@@ -29,9 +29,111 @@ use market_registry::events::{
     SetPaymentCycleDuration as SetPaymentCycleDurationEvent,
 };
 
-use teller_v2::events::SubmittedBid as SubmittedBidEvent;
+use teller_v2::events::{
+    AcceptedBid as AcceptedBidEvent, CancelledBid as CancelledBidEvent,
+    LoanLiquidated as LoanLiquidatedEvent, LoanRepaid as LoanRepaidEvent,
+    LoanRepayment as LoanRepaymentEvent, MarketOwnerCancelledBid as MarketOwnerCancelledBidEvent,
+    SubmittedBid as SubmittedBidEvent,
+};
 
 use constants::{MARKET_REGISTRY, START_BLOCK, TELLER_V2};
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// TELLER V2 EVENTS
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+// extract the submitted bid event
+map_event_to_proto!(
+    map_submitted_bid, // function name
+    SubmittedBidEvent, // event type
+    SubmittedBid,      // singular proto type
+    SubmittedBids,     // plural proto type
+    submitted_bids,    // plural proto ident (also the name of the field in the plural proto type)
+    |bid| SubmittedBid {
+        bid_id: bid.bid_id.to_string(),
+        borrower: format_hex(&bid.borrower),
+        receiver: format_hex(&bid.receiver),
+        metadata_uri: format_hex(&bid.metadata_uri),
+    }  // closure to map the event to the proto type
+);
+
+// extract the accepted bid event
+map_event_to_proto!(
+    map_accepted_bid, // function name
+    AcceptedBidEvent, // event type
+    AcceptedBid,      // singular proto type
+    AcceptedBids,     // plural proto type
+    accepted_bids,    // plural proto ident (also the name of the field in the plural proto type)
+    |bid| AcceptedBid {
+        bid_id: bid.bid_id.to_string(),
+        lender: format_hex(&bid.lender),
+    }  // closure to map the event to the proto type
+);
+
+// extract the cancelled bid event
+map_event_to_proto!(
+    map_cancelled_bid, // function name
+    CancelledBidEvent, // event type
+    CancelledBid,      // singular proto type
+    CancelledBids,     // plural proto type
+    cancelled_bids,    // plural proto ident (also the name of the field in the plural proto type)
+    |bid| CancelledBid {
+        bid_id: bid.bid_id.to_string(),
+    }  // closure to map the event to the proto type
+);
+
+// extract the market owner cancelled bid event
+map_event_to_proto!(
+    map_market_owner_cancelled_bid, // function name
+    MarketOwnerCancelledBidEvent,   // event type
+    MarketOwnerCancelledBid,        // singular proto type
+    MarketOwnerCancelledBids,       // plural proto type
+    market_owner_cancelled_bids, // plural proto ident (also the name of the field in the plural proto type)
+    |bid| MarketOwnerCancelledBid {
+        bid_id: bid.bid_id.to_string(),
+    }  // closure to map the event to the proto type
+);
+
+// extract the loan repayment event
+map_event_to_proto!(
+    map_loan_repayment, // function name
+    LoanRepaymentEvent, // event type
+    LoanRepayment,      // singular proto type
+    LoanRepayments,     // plural proto type
+    loan_repayments,    // plural proto ident (also the name of the field in the plural proto type)
+    |bid| LoanRepayment {
+        bid_id: bid.bid_id.to_string(),
+    }  // closure to map the event to the proto type
+);
+
+// extract the loan repaid event
+map_event_to_proto!(
+    map_loan_repaid, // function name
+    LoanRepaidEvent, // event type
+    LoanRepaid,      // singular proto type
+    LoanRepaids,     // plural proto type
+    loan_repaid,     // plural proto ident (also the name of the field in the plural proto type)
+    |bid| LoanRepaid {
+        bid_id: bid.bid_id.to_string(),
+    }  // closure to map the event to the proto type
+);
+
+// extract the loan liquidated event
+map_event_to_proto!(
+    map_loan_liquidated, // function name
+    LoanLiquidatedEvent, // event type
+    LoanLiquidated,      // singular proto type
+    LoanLiquidations,    // plural proto type
+    loan_liquidations,   // plural proto ident (also the name of the field in the plural proto type)
+    |bid| LoanLiquidated {
+        bid_id: bid.bid_id.to_string(),
+        liquidator: format_hex(&bid.liquidator),
+    }  // closure to map the event to the proto type
+);
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// MARKET REGISTRY EVENTS
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // extract the markets created event
 map_event_to_proto!(
@@ -43,21 +145,6 @@ map_event_to_proto!(
     |market| MarketCreated {
         market_id: market.market_id.to_string(),
         owner: format_hex(&market.owner),
-    }  // closure to map the event to the proto type
-);
-
-// extract the bids submitted event
-map_event_to_proto!(
-    map_bids_submitted, // function name
-    SubmittedBidEvent,  // event type
-    BidSubmitted,       // singular proto type
-    BidsSubmitted,      // plural proto type
-    bids,               // plural proto ident (also the name of the field in the plural proto type)
-    |bid| BidSubmitted {
-        bid_id: bid.bid_id.to_string(),
-        borrower: format_hex(&bid.borrower),
-        receiver: format_hex(&bid.receiver),
-        metadata_uri: format_hex(&bid.metadata_uri),
     }  // closure to map the event to the proto type
 );
 
@@ -297,8 +384,32 @@ map_event_to_proto!(
 
 #[substreams::handlers::map]
 pub fn graph_out(
-    markets_created: MarketsCreated,
-    bids_submitted: BidsSubmitted,
+    map_submitted_bid: SubmittedBids,
+    map_accepted_bid: AcceptedBids,
+    map_cancelled_bid: CancelledBids,
+    map_loan_liquidated: LoanLiquidations,
+    map_market_owner_cancelled_bid: MarketOwnerCancelledBids,
+    map_loan_repayment: LoanRepayments,
+    map_loan_repaid: LoanRepaids,
+    map_markets_created: MarketsCreated,
+    map_payment_cycle_durations: PaymentCycleDurations,
+    map_default_payment_cycle_durations: PaymentDefaultDurations,
+    map_bid_expiration_time: BidExpirationTimes,
+    map_market_fee: MarketFees,
+    map_lender_attestations: LenderAttestations,
+    map_borrower_attestations: BorrowerAttestations,
+    map_lender_revocations: LenderRevocations,
+    map_borrower_revocations: BorrowerRevocations,
+    map_market_closed: MarketsClosed,
+    map_lender_exit_market: LenderExitMarkets,
+    map_borrower_exit_market: BorrowerExitMarkets,
+    map_set_market_owner: SetMarketOwners,
+    map_set_fee_recipient: SetMarketFeeRecipients,
+    map_set_market_lender_attestation: SetMarketLenderAttestations,
+    map_set_market_borrower_attestation: SetMarketBorrowerAttestations,
+    map_set_payment_cycle: SetPaymentCycles,
+    map_set_payment_type: SetMarketPaymentTypes,
+    map_set_market_uri: SetMarketUris,
     clock: Clock,
 ) -> Result<EntityChanges, substreams::errors::Error> {
     let mut tables = Tables::new();
@@ -306,10 +417,6 @@ pub fn graph_out(
     if clock.number == START_BLOCK {
         bootstrap_protocol(&mut tables);
     }
-
-    markets_created.handle(&mut tables);
-
-    //bids_submitted.handle(&mut tables);
 
     Ok(tables.to_entity_changes())
 }

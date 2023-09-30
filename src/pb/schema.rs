@@ -1,22 +1,6 @@
 // @generated
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct BidSubmitted {
-    #[prost(string, tag="1")]
-    pub bid_id: ::prost::alloc::string::String,
-    #[prost(string, tag="2")]
-    pub borrower: ::prost::alloc::string::String,
-    #[prost(string, tag="3")]
-    pub receiver: ::prost::alloc::string::String,
-    #[prost(string, tag="4")]
-    pub metadata_uri: ::prost::alloc::string::String,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct BidsSubmitted {
-    #[prost(message, repeated, tag="1")]
-    pub bids: ::prost::alloc::vec::Vec<BidSubmitted>,
-}
+// MARKETPLACE EVENTS
+
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MarketCreated {
@@ -283,6 +267,106 @@ pub struct SetMarketUris {
     #[prost(message, repeated, tag="1")]
     pub set_market_uris: ::prost::alloc::vec::Vec<SetMarketUri>,
 }
+// END OF MARKETPLACE EVENTS
+
+// TELLER V2 EVENTS
+
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SubmittedBid {
+    #[prost(string, tag="1")]
+    pub bid_id: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub borrower: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub receiver: ::prost::alloc::string::String,
+    #[prost(string, tag="4")]
+    pub metadata_uri: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SubmittedBids {
+    #[prost(message, repeated, tag="1")]
+    pub submitted_bids: ::prost::alloc::vec::Vec<SubmittedBid>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AcceptedBid {
+    #[prost(string, tag="1")]
+    pub bid_id: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub lender: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AcceptedBids {
+    #[prost(message, repeated, tag="1")]
+    pub accepted_bids: ::prost::alloc::vec::Vec<AcceptedBid>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CancelledBid {
+    #[prost(string, tag="1")]
+    pub bid_id: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CancelledBids {
+    #[prost(message, repeated, tag="1")]
+    pub cancelled_bids: ::prost::alloc::vec::Vec<CancelledBid>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MarketOwnerCancelledBid {
+    #[prost(string, tag="1")]
+    pub bid_id: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MarketOwnerCancelledBids {
+    #[prost(message, repeated, tag="1")]
+    pub market_owner_cancelled_bids: ::prost::alloc::vec::Vec<MarketOwnerCancelledBid>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LoanRepayment {
+    #[prost(string, tag="1")]
+    pub bid_id: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LoanRepayments {
+    #[prost(message, repeated, tag="1")]
+    pub loan_repayments: ::prost::alloc::vec::Vec<LoanRepayment>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LoanRepaid {
+    #[prost(string, tag="1")]
+    pub bid_id: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LoanRepaids {
+    #[prost(message, repeated, tag="1")]
+    pub loan_repaid: ::prost::alloc::vec::Vec<LoanRepaid>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LoanLiquidated {
+    #[prost(string, tag="1")]
+    pub bid_id: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub liquidator: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LoanLiquidations {
+    #[prost(message, repeated, tag="1")]
+    pub loan_liquidations: ::prost::alloc::vec::Vec<LoanLiquidated>,
+}
+// END TELLER V2 EVENTS
+
 // Below contains things for the subgraph schema
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -453,7 +537,7 @@ pub struct Bids {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SubmittedBid {
+pub struct SubmittedBidSchema {
     #[prost(string, tag="1")]
     pub bid_id: ::prost::alloc::string::String,
     #[prost(string, tag="2")]
@@ -465,7 +549,7 @@ pub struct SubmittedBid {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SubmittedBids {
+pub struct SubmittedBidsSchema {
     #[prost(message, repeated, tag="1")]
     pub bids: ::prost::alloc::vec::Vec<SubmittedBid>,
 }

@@ -19,6 +19,64 @@ binaries:
     file: ./target/wasm32-unknown-unknown/release/substreams.wasm
 
 modules:
+
+  - name: map_submitted_bid
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.SubmittedBids
+
+  - name: map_accepted_bid
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.AcceptedBids
+
+  - name: map_cancelled_bid
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.CancelledBids
+
+
+  - name: map_loan_liquidated
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.LoanRepaids
+
+  - name: map_market_owner_cancelled_bid
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.MarketOwnerCancelledBids
+
+  - name: map_loan_repayment
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.LoanRepayments
+
+  - name: map_loan_repaid
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.LoanRepaids
+
   - name: map_markets_created
     kind: map
     initialBlock: 15094704
@@ -35,20 +93,172 @@ modules:
     output:
       type: proto:schema.PaymentCycleDurations
 
-  - name: map_bids_submitted
+  - name: map_default_payment_cycle_durations
     kind: map
     initialBlock: 15094704
     inputs:
       - source: sf.ethereum.type.v2.Block
     output:
-      type: proto:schema.BidsSubmitted
+      type: proto:schema.PaymentDefaultDurations
+
+  - name: map_bid_expiration_time
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.BidExpirationTimes
+    
+  - name: map_market_fee
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.MarketFees
+
+  - name: map_lender_attestations
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.LenderAttestations
+
+  - name: map_borrower_attestations
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.BorrowerAttestations
+
+  - name: map_lender_revocations
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.LenderRevocations
+
+  - name: map_borrower_revocations
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.BorrowerRevocations
+
+  - name: map_market_closed
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.MarketsClosed
+
+  - name: map_lender_exit_market
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.LenderExitMarkets
+
+  - name: map_borrower_exit_market
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.BorrowerExitMarkets
+
+  - name: map_set_market_owner
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.SetMarketOwners
+
+  - name: map_set_fee_recipient
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.SetMarketFeeRecipients
+
+  - name: map_set_market_lender_attestation
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.SetMarketLenderAttestations
+
+  - name: map_set_market_borrower_attestation
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.SetMarketBorrowerAttestations
+
+  - name: map_set_payment_cycle
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.SetPaymentCycles
+
+  - name: map_set_payment_type
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.SetMarketPaymentType
+
+  - name: map_set_market_uri
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.SetMarketUri
 
   - name: graph_out
     kind: map
     initialBlock: 15094704
     inputs:
+      - map: map_submitted_bid
+      - map: map_accepted_bid
+      - map: map_cancelled_bid
+      - map: map_loan_liquidated
+      - map: map_market_owner_cancelled_bid
+      - map: map_loan_repayment
+      - map: map_loan_repaid
       - map: map_markets_created
-      - map: map_bids_submitted
+      - map: map_payment_cycle_durations
+      - map: map_default_payment_cycle_durations
+      - map: map_bid_expiration_time
+      - map: map_market_fee
+      - map: map_lender_attestations
+      - map: map_borrower_attestations
+      - map: map_lender_revocations
+      - map: map_borrower_revocations
+      - map: map_market_closed
+      - map: map_lender_exit_market
+      - map: map_borrower_exit_market
+      - map: map_set_market_owner
+      - map: map_set_fee_recipient
+      - map: map_set_market_lender_attestation
+      - map: map_set_market_borrower_attestation
+      - map: map_set_payment_cycle
+      - map: map_set_payment_type
+      - map: map_set_market_uri
       - source: sf.substreams.v1.Clock
     output:
       type: proto:substreams.entity.v1.EntityChanges

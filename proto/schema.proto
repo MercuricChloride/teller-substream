@@ -2,16 +2,7 @@ syntax = "proto3";
 
 package schema;
 
-message BidSubmitted {
-  string bid_id = 1;
-  string borrower = 2;
-  string receiver = 3;
-  string metadata_uri = 4;
-}
-
-message BidsSubmitted {
-  repeated BidSubmitted bids = 1;
-}
+// MARKETPLACE EVENTS
 
 message MarketCreated {
   string market_id = 1;
@@ -194,6 +185,73 @@ message SetMarketUris {
   repeated SetMarketUri set_market_uris = 1;
 }
 
+// END OF MARKETPLACE EVENTS
+
+// TELLER V2 EVENTS
+
+message SubmittedBid {
+  string bid_id = 1;
+  string borrower = 2;
+  string receiver = 3;
+  string metadata_uri = 4;
+}
+
+message SubmittedBids {
+  repeated SubmittedBid submitted_bids = 1;
+}
+
+message AcceptedBid {
+  string bid_id = 1;
+  string lender = 2;
+}
+
+message AcceptedBids {
+  repeated AcceptedBid accepted_bids = 1;
+}
+
+message CancelledBid {
+  string bid_id = 1;
+}
+
+message CancelledBids {
+  repeated CancelledBid cancelled_bids = 1;
+}
+
+message MarketOwnerCancelledBid {
+  string bid_id = 1;
+}
+
+message MarketOwnerCancelledBids {
+  repeated MarketOwnerCancelledBid market_owner_cancelled_bids = 1;
+}
+
+message LoanRepayment {
+  string bid_id = 1;
+}
+
+message LoanRepayments {
+  repeated LoanRepayment loan_repayments = 1;
+}
+
+message LoanRepaid {
+  string bid_id = 1;
+}
+
+message LoanRepaids {
+  repeated LoanRepaid loan_repaid = 1;
+}
+
+message LoanLiquidated {
+  string bid_id = 1;
+  string liquidator = 2;
+}
+
+message LoanLiquidations {
+  repeated LoanLiquidated loan_liquidations = 1;
+}
+
+// END TELLER V2 EVENTS
+
 
 // Below contains things for the subgraph schema
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -286,14 +344,14 @@ message Bids {
   repeated Bid bids = 1;
 }
 
-message SubmittedBid {
+message SubmittedBidSchema {
   string bid_id = 1;
   string borrower = 2;
   string receiver = 3;
   string metadata_uri = 4;
 }
 
-message SubmittedBids {
+message SubmittedBidsSchema {
   repeated SubmittedBid bids = 1;
 }
 
