@@ -2,43 +2,591 @@ syntax = "proto3";
 
 package schema;
 
-message Contracts {
-  repeated Contract contracts = 1;
+message BidSubmitted {
+  string bid_id = 1;
+  string borrower = 2;
+  string receiver = 3;
+  string metadata_uri = 4;
 }
 
-message Contract {
-    string address = 1;
-    string timestamp = 2;
+message BidsSubmitted {
+  repeated BidSubmitted bids = 1;
 }
 
-message Transfers {
-  repeated Transfer transfers = 1;
-}
-
-message Transfer {
-  string id = 1; // {tx_hash}-{log_index}
-  string operator = 2;
-  string from = 3;
-  string to = 4;
-  repeated string token_ids = 5;
-}
-
-message Approval {
-  string id = 1; // {tx_hash}-{log_index}
+message MarketCreated {
+  string market_id = 1;
   string owner = 2;
-  string operator = 3;
-  bool approved = 4;
 }
 
-message Approvals {
-  repeated Approval approvals = 1;
+message MarketsCreated {
+  repeated MarketCreated markets_created = 1;
 }
 
-message Uri {
-  string value = 1;
-  string token_id = 2;
+message PaymentCycleDuration {
+  string market_id = 1;
+  uint32 duration = 2;
 }
 
-message Uris {
-  repeated Uri uris = 1;
+message PaymentCycleDurations {
+  repeated PaymentCycleDuration payment_cycle_durations = 1;
+}
+
+message PaymentDefaultDuration {
+  string market_id = 1;
+  uint32 duration = 2;
+}
+
+message PaymentDefaultDurations {
+  repeated PaymentDefaultDuration payment_default_durations = 1;
+}
+
+message BidExpirationTime {
+  string market_id = 1;
+  uint32 duration = 2;
+}
+
+message BidExpirationTimes {
+  repeated BidExpirationTime bid_expiration_times = 1;
+}
+
+message MarketFee {
+  string market_id = 1;
+  uint32 fee_pct = 2;
+}
+
+message MarketFees {
+  repeated MarketFee market_fees = 1;
+}
+
+message LenderAttestation {
+  string market_id = 1;
+  string lender = 2;
+}
+
+message LenderAttestations {
+  repeated LenderAttestation lender_attestations = 1;
+}
+
+message BorrowerAttestation {
+  string market_id = 1;
+  string borrower = 2;
+}
+
+message BorrowerAttestations {
+  repeated BorrowerAttestation borrower_attestations = 1;
+}
+
+message LenderRevocation {
+  string market_id = 1;
+  string lender = 2;
+}
+
+message LenderRevocations {
+  repeated LenderRevocation lender_revocations = 1;
+}
+
+message BorrowerRevocation {
+  string market_id = 1;
+  string borrower = 2;
+}
+
+message BorrowerRevocations {
+  repeated BorrowerRevocation borrower_revocations = 1;
+}
+
+message MarketClosed {
+  string market_id = 1;
+}
+
+message MarketsClosed {
+  repeated MarketClosed markets_closed = 1;
+}
+
+message LenderExitMarket {
+  string market_id = 1;
+  string lender = 2;
+}
+
+message LenderExitMarkets {
+  repeated LenderExitMarket lender_exit_markets = 1;
+}
+
+message BorrowerExitMarket {
+  string market_id = 1;
+  string borrower = 2;
+}
+
+message BorrowerExitMarkets {
+  repeated BorrowerExitMarket borrower_exit_markets = 1;
+}
+
+message SetMarketOwner {
+  string market_id = 1;
+  string new_owner = 2;
+}
+
+message SetMarketOwners {
+  repeated SetMarketOwner set_market_owners = 1;
+}
+
+message SetMarketFeeRecipient {
+  string market_id = 1;
+  string new_recipient = 2;
+}
+
+message SetMarketFeeRecipients {
+  repeated SetMarketFeeRecipient set_market_fee_recipients = 1;
+}
+
+message SetMarketLenderAttestation {
+  string market_id = 1;
+  bool attestation_required = 2;
+}
+
+message SetMarketLenderAttestations {
+  repeated SetMarketLenderAttestation set_market_lender_attestations = 1;
+}
+
+message SetMarketBorrowerAttestation {
+  string market_id = 1;
+  bool attestation_required = 2;
+}
+
+message SetMarketBorrowerAttestations {
+  repeated SetMarketBorrowerAttestation set_market_borrower_attestations = 1;
+}
+
+enum PaymentType {
+  EMI = 0;
+  BULLET = 1;
+}
+
+message SetMarketPaymentType {
+  string market_id = 1;
+  PaymentType payment_type = 2;
+}
+
+message SetMarketPaymentTypes {
+  repeated SetMarketPaymentType set_market_payment_types = 1;
+}
+
+enum PaymentCycleType {
+  SECONDS = 0;
+  MONTHLY = 1;
+}
+
+message SetPaymentCycle {
+  string market_id = 1;
+  PaymentCycleType payment_cycle_type = 2;
+  uint32 value = 3;
+}
+
+message SetPaymentCycles {
+  repeated SetPaymentCycle set_market_payment_cycles = 1;
+}
+
+message SetMarketUri {
+  string market_id = 1;
+  string uri = 2;
+}
+
+message SetMarketUris {
+  repeated SetMarketUri set_market_uris = 1;
+}
+
+
+// Below contains things for the subgraph schema
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+message Protocol {
+  string id = 1;
+  repeated string activeCommitments = 2;
+  repeated string activeRewards = 3;
+  uint64 _durationTotal = 4;
+  uint64 _durationAverage = 5;
+}
+
+message Protocols {
+  repeated Protocol protocols = 1;
+}
+
+message ProtocolCollateral {
+  string id = 1;
+
+  string collateralToken = 2; // This is the id of a collateral token in the collateral_tokens table.
+}
+
+message MarketPlace {
+  string id = 1;
+  string marketplaceId = 2; // This is the id of a marketplace in the marketplaces table.
+
+  bytes owner = 3; // address
+  bytes feeRecipient = 4; // address
+  string metadataURI = 5;
+  uint64 paymentDefaultDuration = 6;
+  uint64 paymentCycleDuration = 7;
+  string paymentCycleType = 8;
+  string paymentType = 9;
+  uint64 bidExpirationTime = 10;
+  bool borrowerAttestationRequired = 11;
+  bool lenderAttestationRequired = 12;
+  uint64 marketplaceFeePercent = 13;
+
+  uint64 _durationTotal = 14;
+  uint64 durationAveragre = 15;
+  uint64 totalNumberOfLenders = 16;
+}
+
+message Bid {
+  // Required fields
+  string id = 1;  // ID of the Bid entity
+  uint64 bidId = 2;
+  uint64 createdAt = 3;
+  uint64 expiresAt = 4;
+  string transactionHash = 5;
+  bytes borrowerAddress = 6;
+  string borrower = 7;  // ID of the Borrower entity
+  bytes receiverAddress = 8;
+  string lendingToken = 9;  // ID of the Token entity
+  bytes lendingTokenAddress = 10;
+  uint64 marketplaceId = 11;
+  string metadataURI = 12;
+  string status = 13;
+  uint64 principal = 14;
+  uint64 acceptedTimestamp = 15;
+  uint64 lastRepaidTimestamp = 16;
+  uint64 loanDuration = 17;
+  uint64 paymentCycle = 18;
+  uint64 paymentCycleAmount = 19;
+  uint64 apr = 20;
+  uint64 totalRepaidPrincipal = 21;
+  uint64 totalRepaidInterest = 22;
+  uint64 _lastTotalRepaidAmount = 23;
+  uint64 _lastTotalRepaidInterestAmount = 24;
+  uint64 paymentDefaultDuration = 25;
+
+  // Optional fields
+  uint64 updatedAt = 26;
+  bytes liquidatorAddress = 27;
+  bytes lenderAddress = 28;
+  string lender = 29;  // ID of the Lender entity
+  uint64 endDate = 30;
+  uint64 nextDueDate = 31;
+  string marketplace = 32;  // ID of the MarketPlace entity
+  string commitment = 33;  // ID of the Commitment entity
+  string commitmentId = 34;
+  bytes collateralEscrow = 35;
+
+  // Repeated fields
+  repeated string payments = 36;  // IDs of the Payment entities
+  repeated string collateral = 37;  // IDs of the BidCollateral entities
+}
+
+message Bids {
+  repeated Bid bids = 1;
+}
+
+message SubmittedBid {
+  string bid_id = 1;
+  string borrower = 2;
+  string receiver = 3;
+  string metadata_uri = 4;
+}
+
+message SubmittedBids {
+  repeated SubmittedBid bids = 1;
+}
+
+message BidCollateral {
+  // Required fields
+  string id = 1;  // ID of the BidCollateral entity
+  uint64 amount = 2;
+  bytes collateralAddress = 3;
+  string token = 4;  // ID of the Token entity
+  string bid = 5;  // ID of the Bid entity
+
+  // Optional fields
+  uint64 tokenId = 6;
+  string type = 7;
+  string status = 8;
+  bytes receiver = 9;
+}
+
+message Token {
+  // Required fields
+  string id = 1;  // ID of the Token entity
+  bytes address = 2;
+
+  // Optional fields
+  string type = 3;
+  uint64 nftId = 4;
+  string name = 5;
+  string symbol = 6;
+  uint64 decimals = 7;
+}
+
+message FundedTx {
+  // Required fields
+  string id = 1;  // ID of the FundedTx entity
+  string bid = 2;  // ID of the Bid entity
+  uint64 timestamp = 3;
+}
+
+message Payment {
+  // Required fields
+  string id = 1;  // ID of the Payment entity
+  string bid = 2;  // ID of the Bid entity
+  uint64 principal = 3;
+  uint64 interest = 4;
+  uint64 paymentDate = 5;
+  uint64 outstandingCapital = 6;
+  string status = 7;
+}
+
+message User {
+  // Required fields
+  string id = 1;  // ID of the User entity
+  uint64 firstInteractionDate = 2;
+
+  // Derived fields like lenders, borrowers, and bidRewards are ignored
+}
+
+message Lender {
+  // Required fields
+  string id = 1;  // ID of the Lender entity
+  uint64 marketplaceId = 2;
+  bytes lenderAddress = 3;
+  uint64 firstInteractionDate = 4;
+  bool isAttested = 5;
+  uint64 _durationTotal = 6;
+  uint64 durationAverage = 7;
+
+  // Optional fields
+  uint64 attestedTimestamp = 8;
+
+  string marketplace = 9;  // ID of the MarketPlace entity
+  string user = 10;  // ID of the User entity
+
+  // Derived fields like loans, tokenVolumes, and commitments are ignored
+}
+
+message Borrower {
+  // Required fields
+  string id = 1;  // ID of the Borrower entity
+  uint64 marketplaceId = 2;
+  bytes borrowerAddress = 3;
+  uint64 firstInteractionDate = 4;
+  bool isAttested = 5;
+  uint64 _durationTotal = 6;
+  uint64 durationAverage = 7;
+
+  // Optional fields
+  uint64 attestedTimestamp = 8;
+
+  string marketplace = 9;  // ID of the MarketPlace entity
+  string user = 10;  // ID of the User entity
+
+  // Derived fields like loans, tokenVolumes are ignored
+}
+message LoanStatusCount {
+  // Required fields
+  string id = 1;  // ID of the LoanStatusCount entity
+  uint64 totalCount = 2;
+  uint64 submittedCount = 3;
+  uint64 expiredCount = 4;
+  uint64 cancelledCount = 5;
+  uint64 acceptedCount = 6;
+  uint64 dueSoonCount = 7;
+  uint64 lateCount = 8;
+  uint64 defaultedCount = 9;
+  uint64 repaidCount = 10;
+  uint64 liquidatedCount = 11;
+
+  // Entity Relationships
+  string _protocol = 12;  // ID of the Protocol entity
+  string _market = 13;  // ID of the MarketPlace entity
+  string _lender = 14;  // ID of the Lender entity
+  string _borrower = 15;  // ID of the Borrower entity
+  string _tokenVolume = 16;  // ID of the TokenVolume entity
+}
+
+message TokenVolume {
+  // Required fields
+  string id = 1;  // ID of the TokenVolume entity
+  string token = 2;  // ID of the Token entity
+  bytes lendingTokenAddress = 3;
+  uint64 outstandingCapital = 4;
+  uint64 totalAvailable = 5;
+  uint64 totalLoaned = 6;
+  uint64 totalActive = 7;
+  uint64 totalAccepted = 8;
+  uint64 totalDueSoon = 9;
+  uint64 totalLate = 10;
+  uint64 totalDefaulted = 11;
+  uint64 totalRepaid = 12;
+  uint64 totalLiquidated = 13;
+  uint64 _loanAcceptedCount = 14;
+  uint64 loanAverage = 15;
+  uint64 commissionEarned = 16;
+  uint64 totalRepaidInterest = 17;
+  uint64 _aprWeightedTotal = 18;
+  uint64 aprAverage = 19;
+  uint64 _aprActiveWeightedTotal = 20;
+  uint64 aprActiveAverage = 21;
+  uint64 _durationTotal = 22;
+  uint64 durationAverage = 23;
+
+  // Optional fields
+  string collateralToken = 24;  // ID of the Token entity, null if there's no collateral
+
+  // Entity Relationships
+  string protocol = 25;  // ID of the Protocol entity
+  string market = 26;  // ID of the MarketPlace entity
+  string lender = 27;  // ID of the Lender entity
+  string borrower = 28;  // ID of the Borrower entity
+  string _protocolCollateral = 29;  // ID of the ProtocolCollateral entity
+  string _linkedParentTokenVolume = 30;  // ID of the TokenVolume entity
+}
+
+// MarketCommitmentStdDev
+message MarketCommitmentStdDev {
+  string id = 1;  // ID of the MarketCommitmentStdDev entity
+  string market = 2;  // ID of the MarketPlace entity
+  string lendingToken = 3;  // ID of the Token entity
+  string collateralToken = 4;  // ID of the Token entity
+
+  // BigDecimal types are represented as strings for simplicity
+  string maxPrincipalPerCollateralStdDev = 5;
+  string maxPrincipalPerCollateralMean = 6;
+  string minApyStdDev = 7;
+  string minApyMean = 8;
+  string maxDurationStdDev = 9;
+  string maxDurationMean = 10;
+}
+
+// CommitmentZScore
+message CommitmentZScore {
+  string id = 1;  // ID of the CommitmentZScore entity
+  string commitment = 2;  // ID of the Commitment entity
+
+  // BigDecimal is represented as a string for simplicity
+  string zScore = 3;
+}
+
+// Commitment
+message Commitment {
+  string id = 1;  // ID of the Commitment entity
+  uint64 createdAt = 2;
+  uint64 updatedAt = 3;
+  string status = 4;
+
+  // Offer
+  uint64 committedAmount = 5;
+  uint64 expirationTimestamp = 6;
+  uint64 maxDuration = 7;
+  uint64 minAPY = 8;
+  string principalToken = 9;  // ID of the Token entity
+  bytes principalTokenAddress = 10;
+
+  // Required Collateral
+  string collateralToken = 11;  // ID of the Token entity
+  bytes collateralTokenAddress = 12;
+  uint64 collateralTokenType = 13;
+  uint64 maxPrincipalPerCollateralAmount = 14;
+
+  // We use bytes to represent Ethereum addresses
+  repeated bytes commitmentBorrowers = 15;
+
+  // Lender
+  string lender = 16;  // ID of the Lender entity
+  bytes lenderAddress = 17;
+
+  // Market
+  string marketplace = 18;  // ID of the MarketPlace entity
+  uint64 marketplaceId = 19;
+
+  // TokenStats
+  string tokenVolume = 20;  // ID of the TokenVolume entity
+
+  // Extra
+  uint64 maxPrincipal = 21;
+  uint64 acceptedPrincipal = 22;
+}
+
+// CommitmentReward
+message CommitmentReward {
+  string id = 1;  // ID of the CommitmentReward entity
+  uint64 createdAt = 2;
+  uint64 updatedAt = 3;
+  string reward = 4;  // ID of the RewardAllocation entity
+  string commitment = 5;  // ID of the Commitment entity
+  uint64 roi = 6;
+  uint64 apy = 7;
+}
+
+// RewardAllocation
+message RewardAllocation {
+  string id = 1;  // ID of the RewardAllocation entity
+  uint64 createdAt = 2;
+  uint64 updatedAt = 3;
+  string status = 4;
+
+  string allocator = 5;  // ID of the User entity
+  bytes allocatorAddress = 6;
+
+  // Market
+  string marketplace = 7;  // ID of the MarketPlace entity
+  uint64 marketplaceId = 8;
+
+  // TokenStats
+  string tokenVolume = 9;  // ID of the TokenVolume entity
+
+  string rewardToken = 10;  // ID of the Token entity
+  bytes rewardTokenAddress = 11;
+  uint64 rewardTokenAmountInitial = 12;
+  uint64 rewardTokenAmountRemaining = 13;
+
+  bytes requiredPrincipalTokenAddress = 14;
+  bytes requiredCollateralTokenAddress = 15;
+
+  uint64 minimumCollateralPerPrincipalAmount = 16;
+  uint64 rewardPerLoanPrincipalAmount = 17;
+
+  uint64 bidStartTimeMin = 18;
+  uint64 bidStartTimeMax = 19;
+
+  string allocationStrategy = 20;
+}
+
+// BidReward
+message BidReward {
+  string id = 1;  // ID of the BidReward entity
+  uint64 createdAt = 2;
+  uint64 updatedAt = 3;
+  string reward = 4;  // ID of the RewardAllocation entity
+  string bid = 5;  // ID of the Bid entity
+  string user = 6;  // ID of the User entity
+  bool claimed = 7;
+}
+
+
+
+
+
+
+
+message EthTransaction {
+  string id = 1;
+  string event = 2;
+  string from = 3;
+  string gasPrice = 4;
+  string gasSent = 5;
+  string hash = 6;
+  string index = 7;
+  string to = 8;
+  string value = 9;
+  string contract = 10;
+  string timestamp = 11;
+  string gasLimit = 12;
+  string blockNumber = 13;
 }

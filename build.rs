@@ -1,9 +1,27 @@
+use std::fs::read_dir;
 use substreams_ethereum::Abigen;
 
 fn main() -> Result<(), anyhow::Error> {
-    Abigen::new("erc1155", "abis/erc1155.json")
-        .unwrap()
-        .generate()
-        .unwrap()
-        .write_to_file("src/abi/erc1155.rs")
+    for file in read_dir("abis")? {
+        let file = file?;
+        let path = file.path();
+        let path = path.to_str().unwrap();
+        let name = path.split("/").last().unwrap().split(".").next().unwrap();
+
+        if path.ends_with(".bak") {
+            continue;
+        }
+
+        println!("Processing {}...", name);
+
+        Abigen::new(name, path)
+            .unwrap()
+            .generate()
+            .unwrap()
+            .write_to_file(format!("src/abi/{}.rs", name))?;
+
+        println!("Done!");
+    }
+
+    Ok(())
 }

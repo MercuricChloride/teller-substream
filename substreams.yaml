@@ -1,6 +1,6 @@
 specVersion: v0.1.0
 package:
-  name: "erc1155_substream"
+  name: "tellerv2_substream"
   version: v1.0.1
 
 imports:
@@ -19,37 +19,36 @@ binaries:
     file: ./target/wasm32-unknown-unknown/release/substreams.wasm
 
 modules:
-  - name: map_transfers
+  - name: map_markets_created
     kind: map
-    initialBlock: 12129118
+    initialBlock: 15094704
     inputs:
       - source: sf.ethereum.type.v2.Block
     output:
-      type: proto:schema.Transfers
+      type: proto:schema.MarketsCreated
 
-  - name: map_approvals
+  - name: map_payment_cycle_durations
     kind: map
-    initialBlock: 12129118
+    initialBlock: 15094704
     inputs:
       - source: sf.ethereum.type.v2.Block
     output:
-      type: proto:schema.Approvals
+      type: proto:schema.PaymentCycleDurations
 
-  - name: map_uris
+  - name: map_bids_submitted
     kind: map
-    initialBlock: 12129118
+    initialBlock: 15094704
     inputs:
       - source: sf.ethereum.type.v2.Block
     output:
-      type: proto:schema.Uris
+      type: proto:schema.BidsSubmitted
 
   - name: graph_out
     kind: map
-    initialBlock: 12129118
+    initialBlock: 15094704
     inputs:
+      - map: map_markets_created
+      - map: map_bids_submitted
       - source: sf.substreams.v1.Clock
-      - map: map_transfers
-      - map: map_approvals
-      - map: map_uris
     output:
       type: proto:substreams.entity.v1.EntityChanges

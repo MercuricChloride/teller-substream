@@ -1,7 +1,8 @@
-# Generic ERC1155 Substream Powered Subgraph
+# Teller Protocol Substreams Powered Subgraph
 
-A simple subgraph for tracking a single ERC1155 smart contract.
+A subgraph for tracking the Teller Protocol
 
+TODO: UPDATE THIS
 Link to see what this is like live: [Here](https://thegraph.com/hosted-service/subgraph/mercuricchloride/erc1155-substream)
 
 # Quickstart

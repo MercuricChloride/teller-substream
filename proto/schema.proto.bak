@@ -1,0 +1,539 @@
+syntax = "proto3";
+
+package schema;
+
+// Corresponding to ConsensusContract GraphQL enum
+enum ConsensusContract {
+  LOAN_TERMS_CONSENSUS = 0;
+  INTEREST_CONSENSUS = 1;
+}
+
+// Corresponding to LendingPoolAction GraphQL enum
+enum LendingPoolAction {
+  DEPOSITED = 0;
+  WITHDRAWN = 1;
+  REPAID = 2;
+  INTEREST_WITHDRAWN = 3;
+  PAYMENT_LIQUIDATED = 4;
+}
+
+// Corresponding to LoanStatus GraphQL enum
+enum LoanStatus {
+  TERMS_SET = 0;
+  ACTIVE = 1;
+  CLOSED = 2;
+}
+
+// Corresponding to TokenStatusAction GraphQL enum
+enum TokenStatusAction {
+  TRANSFER = 0;
+  APPROVAL = 1;
+  MINTER_ADDED = 2;
+  MINTER_REMOVED = 3;
+}
+
+message EthTransaction {
+  string id = 1;
+  string event = 2;
+  string from = 3;
+  string gasPrice = 4;
+  string gasSent = 5;
+  string hash = 6;
+  string index = 7;
+  string to = 8;
+  string value = 9;
+  string contract = 10;
+  string timestamp = 11;
+  string gasLimit = 12;
+  string blockNumber = 13;
+}
+
+message EthTransactions {
+  repeated EthTransaction transactions = 1;
+}
+
+message Borrower {
+  string id = 1;
+  string address = 2;
+}
+
+message Borrowers {
+  repeated Borrower borrowers = 1;
+}
+
+message Loan {
+  string id = 1;
+  string token = 2;
+  string collateralToken = 3;
+
+  // EthTransaction relation: Use an ID or another field to identify the EthTransaction
+  string transaction = 4;
+
+  // Borrower relation: Use an ID to identify the Borrower
+  string borrower = 5;
+
+  bytes recipient = 6;
+
+  // LoanTerm relation: Use an ID to identify the LoanTerm
+  string terms = 7;
+
+  uint64 startDate = 8; // BigInt in GraphQL, using int64 in protobuf
+  uint64 endDate = 9;
+  uint64 amountBorrowed = 10;
+
+  LoanStatus status = 11; // Assuming LoanStatus is an enum
+
+  // LoanRepayment relation: Use IDs or another field to identify each LoanRepayment
+  repeated string repayments = 12;
+
+  uint64 totalRepaidAmount = 13;
+  uint64 totalOwedAmount = 14;
+
+  // CollateralDeposit relation: Use IDs or another field to identify each CollateralDeposit
+  repeated string collateralDeposits = 15;
+
+  uint64 totalCollateralDepositsAmount = 16;
+
+  // CollateralWithdraw relation: Use IDs or another field to identify each CollateralWithdraw
+  repeated string collateralWithdrawns = 17;
+
+  uint64 totalCollateralWithdrawalsAmount = 18;
+
+  // Liquidation relation: Use an ID or another field to identify the Liquidation
+  string liquidation = 19;
+
+  // Escrow relation: Use an ID or another field to identify the Escrow
+  string escrow = 20;
+
+  uint64 blockNumber = 21; // BigInt in GraphQL, using int64 in protobuf
+  uint64 timestamp = 22;
+}
+
+message Escrow {
+  string id = 1; // Required field
+
+  // EthTransaction relation: Use an ID or another field to identify the EthTransaction
+  string transaction = 2;
+
+  // Loan relation: Use an ID or another field to identify the Loan
+  string loan = 3;
+
+  uint64 blockNumber = 4; // BigInt in GraphQL, using int64 in protobuf
+  uint64 timestamp = 5;
+}
+
+message LoanTerm {
+  string id = 1; // Required field
+
+  // EthTransaction relation: Use an ID or another field to identify the EthTransaction
+  string transaction = 2;
+
+  uint64 interestRate = 3;
+  uint64 collateralRatio = 4;
+  uint64 maxLoanAmount = 5;
+  uint64 duration = 6;
+  uint64 expiryAt = 7;
+  uint64 blockNumber = 8;
+  uint64 timestamp = 9;
+}
+
+message LoanTerms {
+  repeated LoanTerm terms = 1;
+}
+
+message Liquidation {
+  string id = 1; // Required field
+
+  // EthTransaction relation: Use an ID or another field to identify the EthTransaction
+  string transaction = 2;
+
+  // Loan relation: Use an ID or another field to identify the Loan
+  string loan = 3;
+
+  bytes liquidator = 4;
+  uint64 collateralOut = 5;
+  uint64 tokensIn = 6;
+  uint64 blockNumber = 7;
+  uint64 timestamp = 8;
+}
+
+message LoanRepayment {
+  string id = 1; // Required field
+
+  // EthTransaction relation: Use an ID or another field to identify the EthTransaction
+  string transaction = 2;
+
+  // Loan relation: Use an ID or another field to identify the Loan
+  string loan = 3;
+
+  uint64 amount = 4;
+  bytes payer = 5;
+  uint64 blockNumber = 6;
+  uint64 timestamp = 7;
+}
+
+message CollateralDeposit {
+  string id = 1; // Required field
+
+  // EthTransaction relation: Use an ID or another field to identify the EthTransaction
+  string transaction = 2;
+
+  // Loan relation: Use an ID or another field to identify the Loan
+  string loan = 3;
+
+  // Borrower relation: Use an ID or another field to identify the Borrower
+  string borrower = 4;
+
+  uint64 amount = 5;
+  uint64 blockNumber = 6;
+  uint64 timestamp = 7;
+}
+
+message CollateralWithdraw {
+  string id = 1; // Required field
+
+  // EthTransaction relation: Use an ID or another field to identify the EthTransaction
+  string transaction = 2;
+
+  // Loan relation: Use an ID or another field to identify the Loan
+  string loan = 3;
+
+  // Borrower relation: Use an ID or another field to identify the Borrower
+  string borrower = 4;
+
+  uint64 amount = 5;
+  uint64 blockNumber = 6;
+  uint64 timestamp = 7;
+}
+
+message LendingPoolStatus {
+  string id = 1; // Required field
+  string platformToken = 2;
+  string lendingToken = 3;
+  string collateralToken = 4;
+  uint64 amount = 5;
+  uint64 blockNumber = 6;
+  uint64 timestamp = 7;
+}
+
+message LendingPoolChange {
+  string id = 1; // Required field
+  string platformToken = 2;
+  string lendingToken = 3;
+  string collateralToken = 4;
+
+  // EthTransaction relation: Use an ID or another field to identify the EthTransaction
+  string transaction = 5;
+
+  bytes address = 6;
+  uint64 amount = 7;
+
+  // Assuming LendingPoolAction is defined as an enum
+  LendingPoolAction action = 8;
+
+  uint64 blockNumber = 9;
+  uint64 timestamp = 10;
+}
+
+message InterestSubmitted {
+  string id = 1; // Required field
+  string token = 2;
+  string collateralToken = 3;
+
+  // EthTransaction relation: Use an ID or another field to identify the EthTransaction
+  string transaction = 4;
+
+  bytes signer = 5;
+  bytes lender = 6;
+  uint64 requestNonce = 7;
+  uint64 interest = 8;
+  uint64 endTime = 9;
+  uint64 blockNumber = 10;
+  uint64 timestamp = 11;
+}
+
+message InterestAccepted {
+  string id = 1; // Required field
+  string token = 2;
+  string collateralToken = 3;
+
+  // EthTransaction relation: Use an ID or another field to identify the EthTransaction
+  string transaction = 4;
+
+  bytes lender = 5;
+  uint64 requestNonce = 6;
+  uint64 endTime = 7;
+  uint64 interest = 8;
+  uint64 blockNumber = 9;
+  uint64 timestamp = 10;
+}
+
+message LoanTermsSubmitted {
+  string id = 1; // Required field
+  string token = 2;
+  string collateralToken = 3;
+
+  // EthTransaction relation: Use an ID or another field to identify the EthTransaction
+  string transaction = 4;
+
+  bytes signer = 5;
+  bytes borrower = 6;
+  uint64 requestNonce = 7;
+  uint64 signerNonce = 8;
+  uint64 interestRate = 9;
+  uint64 collateralRatio = 10;
+  uint64 maxLoanAmount = 11;
+  uint64 blockNumber = 12;
+  uint64 timestamp = 13;
+}
+
+message LoanTermsAccepted {
+  string id = 1; // Required field
+  string token = 2;
+  string collateralToken = 3;
+
+  // EthTransaction relation: Use an ID or another field to identify the EthTransaction
+  string transaction = 4;
+
+  bytes borrower = 5;
+  uint64 requestNonce = 6;
+  uint64 interestRate = 7;
+  uint64 collateralRatio = 8;
+  uint64 maxLoanAmount = 9;
+  uint64 blockNumber = 10;
+  uint64 timestamp = 11;
+}
+
+message AccruedInterestChange {
+  string id = 1; // Required field
+  string token = 2;
+  string collateralToken = 3;
+
+  // EthTransaction relation: Use an ID or another field to identify the EthTransaction
+  string transaction = 4;
+
+  bytes lender = 5;
+  uint64 totalNotWithdrawn = 6;
+  uint64 totalAccruedInterest = 7;
+  uint64 blockNumber = 8;
+  uint64 timestamp = 9;
+}
+
+message AccruedInterestWithdrawalChange {
+  string id = 1; // Required field
+  string token = 2;
+  string collateralToken = 3;
+
+  // EthTransaction relation: Use an ID or another field to identify the EthTransaction
+  string transaction = 4;
+
+  bytes recipient = 5;
+  uint64 amount = 6;
+  uint64 blockNumber = 7;
+  uint64 timestamp = 8;
+}
+
+message TTokenHolderBalancesStatus {
+  string id = 1;
+  uint64 balance = 2;
+  string platformToken = 3;
+  bytes holder = 4;
+  uint64 blockNumber = 5;
+  uint64 updatedAt = 6;
+}
+
+message TTokenHolderActionsChange {
+  string id = 1;
+  string transaction = 2;  // EthTransaction ID
+  uint64 amount = 3;
+  string platformToken = 4;
+  bytes from = 5;
+  bytes to = 6;
+  string action = 7;  // TokenStatusAction ID
+  uint64 blockNumber = 8;
+  uint64 timestamp = 9;
+}
+
+message PlatformSettingsStatus {
+  string id = 1;
+  string settingName = 2;
+  uint64 value = 3;
+  uint64 min = 4;
+  uint64 max = 5;
+  bool removed = 6;
+  uint64 blockNumber = 7;
+  uint64 timestamp = 8;
+}
+
+message PlatformSettingsChange {
+  string id = 1;
+  string transaction = 2;  // EthTransaction ID
+  uint64 oldValue = 3;
+  uint64 newValue = 4;
+  bytes from = 5;
+  string settingName = 6;
+  uint64 blockNumber = 7;
+  uint64 timestamp = 8;
+}
+
+message LendingPoolPauseStatus {
+  string id = 1;
+  bytes lendingPool = 2;
+  bool paused = 3;
+  uint64 blockNumber = 4;
+  uint64 timestamp = 5;
+}
+
+message LendingPoolPauseChange {
+  string id = 1;
+  string transaction = 2;  // EthTransaction ID
+  bool paused = 3;
+  bytes lendingPool = 4;
+  bytes from = 5;
+  uint64 blockNumber = 6;
+  uint64 timestamp = 7;
+}
+
+message SignerStatus {
+  string id = 1;
+  string token = 2;
+  string collateralToken = 3;
+  string contract = 4;  // ConsensusContract ID
+  bytes account = 5;
+  bool removed = 6;
+  uint64 blockNumber = 7;
+  uint64 timestamp = 8;
+}
+
+message SignerChange {
+  string id = 1;
+  string token = 2;
+  string collateralToken = 3;
+  string contract = 4;  // ConsensusContract ID
+  string transaction = 5;  // EthTransaction ID
+  bytes account = 6;
+  bool removed = 7;
+  uint64 blockNumber = 8;
+  uint64 timestamp = 9;
+}
+
+message PauserStatus {
+  string id = 1;
+  bytes account = 2;
+  bool active = 3;
+  uint64 blockNumber = 4;
+  uint64 timestamp = 5;
+}
+
+message PauserChange {
+  string id = 1;
+  string transaction = 2;  // EthTransaction ID
+  bytes account = 3;
+  bool active = 4;
+  uint64 blockNumber = 5;
+  uint64 timestamp = 6;
+}
+
+message AssetSettingsStatus {
+  string id = 1;
+  bytes tokenAddress = 2;
+  bytes cTokenAddress = 3;
+  uint64 maxLoanAmount = 4;
+  bool removed = 5;
+  uint64 timestamp = 6;
+  uint64 blockNumber = 7;
+}
+
+message AssetSettingsChange {
+  string id = 1;
+  bytes sender = 2;
+  bytes tokenAddress = 3;
+  string propertyChanged = 4;
+  string oldValue = 5;
+  string newValue = 6;
+  uint64 timestamp = 7;
+  uint64 blockNumber = 8;
+}
+
+message BorrowerNoncesChange {
+  string id = 1;
+  string token = 2;
+  string collateralToken = 3;
+  bytes borrower = 4;
+  uint64 nonce = 5;
+  uint64 timestamp = 6;
+  uint64 blockNumber = 7;
+}
+
+message LenderNoncesChange {
+  string id = 1;
+  string token = 2;
+  string collateralToken = 3;
+  bytes lender = 4;
+  uint64 nonce = 5;
+  uint64 timestamp = 6;
+  uint64 blockNumber = 7;
+}
+message TTokenTotalValuesStatus {
+  string id = 1;
+  bytes ttoken = 2;
+  uint64 totalSupply = 3;
+  uint64 totalLent = 4;
+  uint64 totalRepaid = 5;
+  uint64 blockNumber = 6;
+  uint64 timestamp = 7;
+}
+
+message TTokenTotalValuesChange {
+  string id = 1;
+  string transaction = 2;  // EthTransaction ID
+  bytes sender = 3;
+  bytes ttoken = 4;
+  uint64 totalSupply = 5;
+  uint64 totalLent = 6;
+  uint64 totalRepaid = 7;
+  uint64 blockNumber = 8;
+  uint64 timestamp = 9;
+}
+
+message PairAggregatorsStatus {
+  string id = 1;
+  bytes baseToken = 2;
+  string baseTokenSymbol = 3;
+  bytes quoteToken = 4;
+  string quoteTokenSymbol = 5;
+  bytes aggregator = 6;
+  uint64 responseDecimals = 7;
+  uint64 collateralDecimals = 8;
+  bool inverse = 9;
+  uint64 blockNumber = 10;
+  uint64 timestamp = 11;
+}
+
+message PairAggregatorsChange {
+  string id = 1;
+  string transaction = 2;  // EthTransaction ID
+  bytes creator = 3;
+  bytes baseToken = 4;
+  string baseTokenSymbol = 5;
+  bytes quoteToken = 6;
+  string quoteTokenSymbol = 7;
+  bytes aggregator = 8;
+  uint64 responseDecimals = 9;
+  uint64 collateralDecimals = 10;
+  bool inverse = 11;
+  uint64 blockNumber = 12;
+  uint64 timestamp = 13;
+}
+
+message TTokenHolderBalancesChange {
+  string id = 1;
+  string transaction = 2;  // EthTransaction ID
+  bytes token = 3;
+  string tokenName = 4;
+  uint64 balance = 5;
+  uint64 amount = 6;
+  bytes holder = 7;
+  uint64 blockNumber = 8;
+  uint64 timestamp = 9;
+}
