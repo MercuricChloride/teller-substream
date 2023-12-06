@@ -1,5 +1,5 @@
 use crate::{
-    pb::schema::{LoanDetails, TxMeta},
+    pb::schema::{LoanDetails, Terms, TxMeta},
     BidArray,
 };
 use substreams::hex;
@@ -76,7 +76,7 @@ type Bid @entity {
 "
 );
 
-pub fn handle_submitted_bids(bids: BidArray, tx_meta: TxMeta, t: &mut Tables) {
+pub fn handle_submitted_bids(bids: BidArray, t: &mut Tables) {
     use BidHelpers::create;
 
     for bid in bids.elements {
@@ -94,6 +94,10 @@ pub fn handle_submitted_bids(bids: BidArray, tx_meta: TxMeta, t: &mut Tables) {
             tx_meta,
         } = &bid;
 
+        let tx_meta = tx_meta
+            .as_ref()
+            .expect("tx_meta empty, this should never happen!");
+
         let LoanDetails {
             lending_token,
             principal,
@@ -106,34 +110,54 @@ pub fn handle_submitted_bids(bids: BidArray, tx_meta: TxMeta, t: &mut Tables) {
             .as_ref()
             .expect("Loan Details Empty, is this supposed to happen?");
 
-        // create(
-        //     t,
-        //     bid_id,
-        //     bid_id,
-        //     created_at,
-        //     expires_at,
-        //     transaction_hash,
-        //     borrower.as_address(),
-        //     borrower,
-        //     receiver.as_address(),
-        //     &lending_token,
-        //     lending_token.as_address(),
-        //     marketplace_id,
-        //     metadata_u_r_i,
-        //     status,
-        //     principal,
-        //     &accepted_timestamp.to_string(),
-        //     &last_repaid_timestamp.to_string(),
-        //     &loan_duration.to_string(),
-        //     payment_cycle,
-        //     payment_cycle_amount,
-        //     apr,
-        //     marketplace,
-        //     total_repaid_principal,
-        //     total_repaid_interest,
-        //     last_total_repaid_amount,
-        //     last_total_repaid_interest_amount,
-        //     payment_default_duration,
-        // )
+        let total_repaid = total_repaid
+            .as_ref()
+            .expect("Loan Details Payment empty, should this happen?");
+
+        let Terms {
+            payment_cycle_amount,
+            payment_cycle,
+            apr,
+        } = terms.as_ref().expect("Terms empty, should this happen?");
+
+        let (payment_cycle_amount, payment_cycle, apr) = (
+            payment_cycle_amount.to_string(),
+            payment_cycle.to_string(),
+            apr.to_string(),
+        );
+
+        let created_at = tx_meta.timestamp.to_string();
+        let expires_at = (tx_meta.timestamp + *loan_duration as u64).to_string();
+        let transaction_hash = &tx_meta.hash;
+
+        create(
+            t,
+            bid_id,
+            bid_id,
+            &created_at,
+            &expires_at,
+            transaction_hash,
+            &borrower.as_address(),
+            borrower,
+            &receiver.as_address(),
+            &lending_token,
+            &lending_token.as_address(),
+            marketplace_id,
+            metadatauri,
+            &state.to_string(),
+            principal,
+            &accepted_timestamp.to_string(),
+            &last_repaid_timestamp.to_string(),
+            &loan_duration.to_string(),
+            &payment_cycle,
+            &payment_cycle_amount,
+            &apr,
+            marketplace_id,
+            &total_repaid.principal,
+            &total_repaid.interest,
+            &total_repaid.principal,
+            &total_repaid.interest,
+            &expires_at, // TODO Check if the payment default duration is the expiration time?
+        );
     }
 }

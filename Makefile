@@ -8,7 +8,7 @@ build:
 
 .PHONY: stream
 stream: build
-	substreams run submitted_bids -e $(ENDPOINT) -s $(START_BLOCK_2) -t +10
+	substreams run graph_out -e $(ENDPOINT) -s $(START_BLOCK_2) -t +10
 
 .PHONY: protogen
 protogen:

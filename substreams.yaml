@@ -239,32 +239,7 @@ modules:
     kind: map
     initialBlock: 15094704
     inputs:
-      - map: map_submitted_bid
-      - map: map_accepted_bid
-      - map: map_cancelled_bid
-      - map: map_loan_liquidated
-      - map: map_market_owner_cancelled_bid
-      - map: map_loan_repayment
-      - map: map_loan_repaid
-      - map: map_markets_created
-      - map: map_payment_cycle_durations
-      - map: map_default_payment_cycle_durations
-      - map: map_bid_expiration_time
-      - map: map_market_fee
-      - map: map_lender_attestations
-      - map: map_borrower_attestations
-      - map: map_lender_revocations
-      - map: map_borrower_revocations
-      - map: map_market_closed
-      - map: map_lender_exit_market
-      - map: map_borrower_exit_market
-      - map: map_set_market_owner
-      - map: map_set_fee_recipient
-      - map: map_set_market_lender_attestation
-      - map: map_set_market_borrower_attestation
-      - map: map_set_payment_cycle
-      - map: map_set_payment_type
-      - map: map_set_market_uri
+      - map: submitted_bids
       - source: sf.substreams.v1.Clock
     output:
       type: proto:substreams.entity.v1.EntityChanges

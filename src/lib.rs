@@ -7,6 +7,7 @@ pub mod macros;
 mod pb;
 
 use contracts::TellerV2;
+use db::handle_submitted_bids;
 //use abi::teller_v2::functions::{SubmitBid1, SubmitBid2};
 //use helpers::*;
 use pb::schema::*;
@@ -662,51 +663,27 @@ fn map_submitted_bid(
 //     }  // closure to map the event to the proto type
 // );
 
-// #[substreams::handlers::map]
-// pub fn graph_out(
-//     map_submitted_bid: SubmittedBids,
-//     map_accepted_bid: AcceptedBids,
-//     map_cancelled_bid: CancelledBids,
-//     map_loan_liquidated: LoanLiquidations,
-//     map_market_owner_cancelled_bid: MarketOwnerCancelledBids,
-//     map_loan_repayment: LoanRepayments,
-//     map_loan_repaid: LoanRepaids,
-//     //map_markets_created: MarketsCreated,
-//     map_payment_cycle_durations: PaymentCycleDurations,
-//     map_default_payment_cycle_durations: PaymentDefaultDurations,
-//     map_bid_expiration_time: BidExpirationTimes,
-//     map_market_fee: MarketFees,
-//     map_lender_attestations: LenderAttestations,
-//     map_borrower_attestations: BorrowerAttestations,
-//     map_lender_revocations: LenderRevocations,
-//     map_borrower_revocations: BorrowerRevocations,
-//     map_market_closed: MarketsClosed,
-//     map_lender_exit_market: LenderExitMarkets,
-//     map_borrower_exit_market: BorrowerExitMarkets,
-//     map_set_market_owner: SetMarketOwners,
-//     map_set_fee_recipient: SetMarketFeeRecipients,
-//     map_set_market_lender_attestation: SetMarketLenderAttestations,
-//     map_set_market_borrower_attestation: SetMarketBorrowerAttestations,
-//     map_set_payment_cycle: SetPaymentCycles,
-//     map_set_payment_type: SetMarketPaymentTypes,
-//     map_set_market_uri: SetMarketUris,
-//     clock: Clock,
-// ) -> Result<EntityChanges, substreams::errors::Error> {
-//     let mut tables = Tables::new();
+#[substreams::handlers::map]
+pub fn graph_out(
+    submitted_bids: BidArray,
+    clock: Clock,
+) -> Result<EntityChanges, substreams::errors::Error> {
+    let mut tables = Tables::new();
 
-//     if clock.number == START_BLOCK {
-//         bootstrap_protocol(&mut tables);
-//     }
+    //if clock.number == START_BLOCK {
+    //  bootstrap_protocol(&mut tables);
+    //}
+    handle_submitted_bids(submitted_bids, &mut tables);
 
-//     // create the markets
-//     //markets::create_market(&mut tables, &map_markets_created);
+    // create the markets
+    //markets::create_market(&mut tables, &map_markets_created);
 
-//     // create the bids
-//     //bids::create_bids(&mut tables, &map_submitted_bid, &clock);
+    // create the bids
+    //bids::create_bids(&mut tables, &map_submitted_bid, &clock);
 
-//     //bids::update_accepted_bids(&mut tables, &map_accepted_bid);
+    //bids::update_accepted_bids(&mut tables, &map_accepted_bid);
 
-//     //bids::update_cancelled_bids(&mut tables, &map_cancelled_bid);
+    //bids::update_cancelled_bids(&mut tables, &map_cancelled_bid);
 
-//     Ok(tables.to_entity_changes())
-// }
+    Ok(tables.to_entity_changes())
+}
