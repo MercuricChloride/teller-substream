@@ -1,26 +1,37 @@
-use std::fs::read_dir;
-use substreams_ethereum::Abigen;
+use std::{
+    fs::{self, File},
+    io::Read,
+};
 
 fn main() -> Result<(), anyhow::Error> {
-    for file in read_dir("abis")? {
-        let file = file?;
-        let path = file.path();
-        let path = path.to_str().unwrap();
-        let name = path.split("/").last().unwrap().split(".").next().unwrap();
+    //A list of paths we want to "upgrade"
+    let upgrade_paths = vec!["schema"]
+        .iter()
+        .map(|e| e.to_string())
+        .collect::<Vec<_>>();
 
-        if path.ends_with(".bak") {
-            continue;
-        }
+    for path in upgrade_paths.iter() {
+        let path = format!("src/pb/{}.rs", path);
 
-        println!("Processing {}...", name);
+        let mut file = File::open(&path)?;
 
-        Abigen::new(name, path)
-            .unwrap()
-            .generate()
-            .unwrap()
-            .write_to_file(format!("src/abi/{}.rs", name))?;
+        let mut contents = String::new();
 
-        println!("Done!");
+        file.read_to_string(&mut contents)?;
+
+        let new_contents = contents
+            .replace(
+                "use derive_more::{From, Into};\n use ::substreams_helpers_macros::Map;\n",
+                "// @generated",
+            )
+            .replace(
+                "// @generated",
+                "use derive_more::{From, Into};\n use ::substreams_helpers_macros::Map;\n",
+            )
+            .replace("::prost::Message, From, Into", "::prost::Message")
+            .replace("::prost::Message", "::prost::Message, From, Into");
+
+        fs::write(path, new_contents)?;
     }
 
     Ok(())

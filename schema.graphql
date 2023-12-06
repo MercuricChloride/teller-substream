@@ -181,50 +181,50 @@ type Borrower implements IHasLoans @entity {
   user: User!
 }
 
-interface IHasLoans implements IDurationAverage {
-  loans: LoanStatusCount!
-  tokenVolumes: [TokenVolume!]!
+# interface IHasLoans implements IDurationAverage {
+#   loans: LoanStatusCount!
+#   tokenVolumes: [TokenVolume!]!
 
-  _durationTotal: BigInt!
-  durationAverage: BigInt!
-}
+#   _durationTotal: BigInt!
+#   durationAverage: BigInt!
+# }
 
-interface IDurationAverage {
-  _durationTotal: BigInt!
-  durationAverage: BigInt!
-}
+# interface IDurationAverage {
+#   _durationTotal: BigInt!
+#   durationAverage: BigInt!
+# }
 
-interface ILoanStatusCount {
-  all: [Bid!]!
-  totalCount: BigInt!
+# interface ILoanStatusCount {
+#   all: [Bid!]!
+#   totalCount: BigInt!
 
-  submitted: [Bid!]!
-  submittedCount: BigInt!
+#   submitted: [Bid!]!
+#   submittedCount: BigInt!
 
-  expired: [Bid!]!
-  expiredCount: BigInt!
+#   expired: [Bid!]!
+#   expiredCount: BigInt!
 
-  cancelled: [Bid!]!
-  cancelledCount: BigInt!
+#   cancelled: [Bid!]!
+#   cancelledCount: BigInt!
 
-  accepted: [Bid!]!
-  acceptedCount: BigInt!
+#   accepted: [Bid!]!
+#   acceptedCount: BigInt!
 
-  dueSoon: [Bid!]!
-  dueSoonCount: BigInt!
+#   dueSoon: [Bid!]!
+#   dueSoonCount: BigInt!
 
-  late: [Bid!]!
-  lateCount: BigInt!
+#   late: [Bid!]!
+#   lateCount: BigInt!
 
-  defaulted: [Bid!]!
-  defaultedCount: BigInt!
+#   defaulted: [Bid!]!
+#   defaultedCount: BigInt!
 
-  repaid: [Bid!]!
-  repaidCount: BigInt!
+#   repaid: [Bid!]!
+#   repaidCount: BigInt!
 
-  liquidated: [Bid!]!
-  liquidatedCount: BigInt!
-}
+#   liquidated: [Bid!]!
+#   liquidatedCount: BigInt!
+# }
 
 type LoanStatusCount implements ILoanStatusCount @entity {
   id: ID!

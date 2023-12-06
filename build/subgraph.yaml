@@ -1,5 +1,5 @@
 specVersion: 0.0.4
-description: A generic ERC1155 subgraph built by @blind_nabler from the GraphBuildersDAO
+description: A subgraph built for teller-protocol-v2 by @blind_nabler from the GraphBuildersDAO
 repository: https://github.com/MercuricChloride/erc1155-subgraph
 schema:
   file: schema.graphql

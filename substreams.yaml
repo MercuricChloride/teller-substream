@@ -8,7 +8,6 @@ imports:
 
 protobuf:
   files:
-    - block_meta.proto
     - schema.proto
   importPaths:
     - ./proto
@@ -262,3 +261,6 @@ modules:
       - source: sf.substreams.v1.Clock
     output:
       type: proto:substreams.entity.v1.EntityChanges
+
+network:
+  mainnet
