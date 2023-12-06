@@ -45,6 +45,18 @@ message Bid {
   Terms terms = 7;
   BidState state = 8;
   PaymentType paymentType = 9;
+  string bid_id = 10;
+  TxMeta tx_meta = 11;
+}
+
+message BidArray {
+  repeated Bid elements = 1;
+}
+
+message TxMeta {
+  string hash = 1;
+  uint64 block_number = 2;
+  uint64 timestamp = 3;
 }
 
 // MARKETPLACE EVENTS

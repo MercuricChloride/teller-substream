@@ -18,6 +18,13 @@ binaries:
     file: ./target/wasm32-unknown-unknown/release/substreams.wasm
 
 modules:
+  - name: submitted_bids
+    kind: map
+    initialBlock: 15094704
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:schema.BidArray
 
   - name: map_submitted_bid
     kind: map

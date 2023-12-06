@@ -3,6 +3,8 @@
 
 pub const TELLER_V2: [u8; 20] = substreams::hex!("00182fdb0b880ee24d428e3cc39383717677c37e");
 
+pub const TELLER_V2_PROXY: [u8; 20] = substreams::hex!("ad9ace8a1ea7267dc2ab19bf4b10465d56d5ecf0");
+
 #[cfg(feature = "polygon")]
 
 pub const TELLER_V2: &str = "0xD3D79A066F2cD471841C047D372F218252Dbf8Ed";

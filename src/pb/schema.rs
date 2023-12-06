@@ -58,6 +58,26 @@ pub struct Bid {
     pub state: i32,
     #[prost(enumeration="PaymentType", tag="9")]
     pub payment_type: i32,
+    #[prost(string, tag="10")]
+    pub bid_id: ::prost::alloc::string::String,
+    #[prost(message, optional, tag="11")]
+    pub tx_meta: ::core::option::Option<TxMeta>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message, From, Into)]
+pub struct BidArray {
+    #[prost(message, repeated, tag="1")]
+    pub elements: ::prost::alloc::vec::Vec<Bid>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message, From, Into)]
+pub struct TxMeta {
+    #[prost(string, tag="1")]
+    pub hash: ::prost::alloc::string::String,
+    #[prost(uint64, tag="2")]
+    pub block_number: u64,
+    #[prost(uint64, tag="3")]
+    pub timestamp: u64,
 }
 /// MARKETPLACE EVENTS
 #[allow(clippy::derive_partial_eq_without_eq)]

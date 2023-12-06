@@ -1,4 +1,6 @@
-ENDPOINT ?= mainnet.eth.streamingfast.io:443
+ENDPOINT ?= eth.substreams.pinax.network:443
+START_BLOCK_1 ?= 15096140
+START_BLOCK_2 ?= 18678565
 
 .PHONY: build
 build:
@@ -6,7 +8,7 @@ build:
 
 .PHONY: stream
 stream: build
-	substreams run -e $(ENDPOINT) substreams.yaml map_block -s 12292922 -t +10
+	substreams run submitted_bids -e $(ENDPOINT) -s $(START_BLOCK_2) -t +10
 
 .PHONY: protogen
 protogen:

@@ -2,9 +2,11 @@
 mod constants;
 //mod helpers;
 pub mod contracts;
+pub mod db;
 pub mod macros;
 mod pb;
 
+use contracts::TellerV2;
 //use abi::teller_v2::functions::{SubmitBid1, SubmitBid2};
 //use helpers::*;
 use pb::schema::*;
@@ -15,6 +17,7 @@ use substreams::pb::substreams::Clock;
 use substreams::prelude::*;
 use substreams::Hex;
 use substreams_entity_change::{pb::entity::EntityChanges, tables::Tables};
+use substreams_ethereum::block_view::LogView;
 use substreams_ethereum::pb::eth::v2::TransactionTrace;
 use substreams_ethereum::Function;
 use substreams_ethereum::{pb::eth, Event};
@@ -156,33 +159,41 @@ impl SubmitBid {
 // //fn map_markets(block: eth::v2::Block) -> Result<MarketsCreated, substreams::errors::Error> {
 // //MarketsCreated::map(block)
 // //}
-//
-fn load_bid(bid_id: &str) -> String {
-    todo!("Should load the bid from a store or something");
-}
 
-#[substreams::handlers::store]
-fn store_submitted_bids(block: eth::v2::Block, s: StoreSetProto<SubmittedBid>) {
-    let submitted_bids = block
-        .events::<teller_v2::events::SubmittedBid>(&[&constants::TELLER_V2])
-        .collect::<Vec<_>>();
-
-    for (bid, log) in submitted_bids.into_iter() {
-        let index = log.index();
-        //s.set(index, &bid.bid_id, &bid);
+fn create_tx_meta(log: LogView<'_>, block: &eth::v2::Block) -> TxMeta {
+    TxMeta {
+        hash: format_hex(&log.receipt.transaction.hash),
+        block_number: block.number,
+        timestamp: block.timestamp_seconds(),
     }
 }
 
-#[substreams::handlers::map]
-fn submitted_bids(
-    block: eth::v2::Block,
-    submitted_bids: StoreGetProto<SubmittedBid>,
-) -> SubmittedBidArray {
-    let events = block
+#[substreams::handlers::store]
+fn store_submitted_bids(block: eth::v2::Block, s: StoreSetProto<Bid>) {
+    block
         .events::<teller_v2::events::SubmittedBid>(&[&constants::TELLER_V2])
+        .map(|(e, log)| (e.bid_id.to_string(), log))
+        .for_each(|(id, log)| {
+            let tx_meta = create_tx_meta(log, &block);
+            let bid = TellerV2::bids(&id, tx_meta);
+            if let Some(bid) = bid {
+                s.set(0, id, &bid)
+            }
+        });
+}
+
+#[substreams::handlers::map]
+fn submitted_bids(block: eth::v2::Block) -> BidArray {
+    let bids = block
+        .events::<teller_v2::events::SubmittedBid>(&[&constants::TELLER_V2])
+        .map(|(e, log)| (e.bid_id.to_string(), log))
+        .filter_map(|(id, log)| {
+            let tx_meta = create_tx_meta(log, &block);
+            TellerV2::bids(&id, tx_meta)
+        })
         .collect::<Vec<_>>();
-    todo!()
-    //let bid = submitted_bids.get
+
+    BidArray { elements: bids }
 }
 
 #[substreams::handlers::map]

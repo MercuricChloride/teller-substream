@@ -1,12 +1,10 @@
-use crate::constants::TELLER_V2;
+use crate::constants::{TELLER_V2, TELLER_V2_PROXY};
 use crate::format_hex;
-use crate::pb::schema::{Bid, LoanDetails, Payment, Terms};
+use crate::pb::schema::{Bid, LoanDetails, Payment, Terms, TxMeta};
 use crate::teller_v2::functions::Bids;
 use std::str::FromStr;
 use substreams::prelude::*;
 use substreams::scalar::BigInt;
-
-struct TellerV2(Vec<u8>);
 
 type Address = Vec<u8>;
 type Bytes32 = [u8; 32];
@@ -94,8 +92,8 @@ impl From<LoanDetailsT> for LoanDetails {
     }
 }
 
-impl From<BidStruct> for Bid {
-    fn from(value: BidStruct) -> Self {
+impl From<(BidStruct, String, TxMeta)> for Bid {
+    fn from(value: (BidStruct, String, TxMeta)) -> Self {
         let (
             borrower,
             receiver,
@@ -106,7 +104,7 @@ impl From<BidStruct> for Bid {
             terms,
             state,
             payment_type,
-        ) = value;
+        ) = value.0;
 
         Self {
             borrower: borrower.format_sol_type(),
@@ -118,21 +116,32 @@ impl From<BidStruct> for Bid {
             terms: Some(terms.into()),
             state: state.into(),
             payment_type: payment_type.into(),
+            bid_id: value.1,
+            tx_meta: Some(value.2),
         }
     }
 }
 
+pub struct TellerV2;
+
 impl TellerV2 {
-    pub fn bids(&self, bid_id: &String) -> Bid {
+    pub fn bids(bid_id: &String, tx_meta: TxMeta) -> Option<Bid> {
         let bid_id = BigInt::from_str(bid_id.as_str()).expect(&format!(
             "Couldn't convert the bid_id: {} into BigInt!",
             bid_id
         ));
 
+        let bid_id_string = bid_id.to_string();
         let bids = Bids { param0: bid_id };
 
-        let bid: Bid = bids.call(TELLER_V2.to_vec()).unwrap().into();
+        let bid = bids.call(TELLER_V2.to_vec());
 
-        bid
+        match bid {
+            Some(bid) => Some((bid, bid_id_string, tx_meta).into()),
+            None => {
+                substreams::log::println("RPC call to bids() empty!");
+                None
+            }
+        }
     }
 }
